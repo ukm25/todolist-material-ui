@@ -1,7 +1,8 @@
-import { TextField, Button, Typography } from "@mui/material";
-import Stack from '@mui/material/Stack';
+import { TextField, Button, Typography, Pagination } from "@mui/material";
+import Stack from "@mui/material/Stack";
 import { useCallback, useEffect, useState } from "react";
 import { v4 } from "uuid";
+import { chunk } from "lodash";
 
 import { Filter } from "./Filter";
 import { TodoList } from "./TodoList";
@@ -12,6 +13,8 @@ function App() {
   const [filterChoice, setFilterChoice] = useState("all");
   const [listShow, setListShow] = useState([]);
   const [textInput, setTextInput] = useState("");
+  const [count, setCount] = useState(1);
+  const [maxCount, setMaxCount] = useState();
 
   //get data from storage
   useEffect(() => {
@@ -26,29 +29,45 @@ function App() {
     localStorage.setItem(TODO_APP_STORAGE_KEY, JSON.stringify(todoList));
   }, [todoList]);
 
+  //set list show
   useEffect(() => {
+    let todoListAdd = [];
     if (filterChoice === "all") {
-      setListShow((prev) => todoList);
+      const getTodos = chunk(todoList,4);
+      todoListAdd = getTodos[count-1];
     } else {
       if (filterChoice === "doing") {
-        setListShow((prev) =>
-          todoList.filter((task) => task.isCompleted === false)
-        );
+        // setListShow((prev) =>
+        //   todoList.filter((task) => task.isCompleted === false)
+        // );
+        const getTodos = chunk(todoList.filter((task) => task.isCompleted === false),4);
+        todoListAdd = getTodos[count-1];
       } else {
         if (filterChoice === "completed") {
-          setListShow((prev) =>
-            todoList.filter((task) => task.isCompleted === true)
-          );
+          // setListShow((prev) =>
+          //   todoList.filter((task) => task.isCompleted === true)
+          // );
+          todoListAdd = todoList.filter((task) => task.isCompleted === true);
+        } else {
+          if (filterChoice === "search") {
+            todoListAdd = todoList.filter((todo) => {
+              return todo.name.includes(textInput);
+            });
+            // setListShow(todoListAdd);
+          }
         }
       }
     }
+    setListShow(todoListAdd);
   }, [
     filterChoice,
-    setFilterChoice,
-    listShow,
     setListShow,
     todoList,
     setTodoList,
+    textInput,
+    setTextInput,
+    count,
+    setCount,
   ]);
 
   const onTextInputChange = useCallback((e) => {
@@ -62,9 +81,9 @@ function App() {
       )
     );
   }, []);
-  const filterTask = (option) => {
+  const filterTask = useCallback((option) => {
     setFilterChoice((prev) => option);
-  };
+  }, []);
 
   const onAddBtnClick = useCallback(
     (e) => {
@@ -78,24 +97,35 @@ function App() {
     [setTodoList, setTextInput, textInput]
   );
 
-  const onEditBtnClick = (taskEdit) => {
-    console.log("task", taskEdit);
+  const onEditBtnClick = useCallback((taskEdit) => {
     setTodoList((prev) =>
       prev.map((todo) => (todo.id === taskEdit.id ? taskEdit : todo))
     );
-  };
+  }, []);
 
-  const onSearchBtnClick = (text) => {
-    
-  }
+  const onSearchBtnClick = useCallback((e) => {
+    filterTask("search");
+  }, [filterTask]);
 
+  const onPaginationBtnClick = useCallback((event, value) => {
+    setCount(value)
+    // setListShow(prev => prev.slice(count-1,count+3))
+  },[setCount]);
+
+  useEffect(() => {
+    const pageCount = todoList.length;
+    if (pageCount % 4 === 0) {
+      setMaxCount(pageCount / 4);
+    } else {
+      setMaxCount(parseInt(pageCount / 4 + 1));
+    }
+  }, [todoList]);
   return (
-    <>
-      <Typography variant="h5" gutterBottom>
+    <div style={{ textAlign: "center" }}>
+      <Typography variant="h5" gutterBottom style={{ textAlign: "left" }}>
         Danh sách công việc
       </Typography>
       <TextField
-        id="time"
         type="text"
         fullWidth
         InputProps={{
@@ -128,7 +158,18 @@ function App() {
         onEditBtnClick={onEditBtnClick}
       />
       <Filter filterTask={filterTask} />
-    </>
+      <div
+        md={12}
+        style={{ justifyContent: "center", display: "flex", marginTop: "10px" }}
+      >
+        <Pagination
+          onChange={onPaginationBtnClick}
+          count={maxCount}
+          showFirstButton
+          showLastButton
+        />
+      </div>
+    </div>
   );
 }
 

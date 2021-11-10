@@ -85,20 +85,28 @@ function TodoList({ tasksShow, completeTask, onEditBtnClick }) {
     <>
       {/* {console.log("id:",id)}
     {console.log("status:",status)} */}
-      <List>
-        {tasksShow.map((task) => (
-          <ListItem disablePadding key={task.id}>
-            <ListItemButton onClick={() => clickTask(task)}>
-              <ListItemText primary={task.name} />
-              {!task.isCompleted && (
-                <ListItemIcon className="check-icon">
-                  <CloseIcon color="primary" onClick={() => completeTask(task.id)} />
-                </ListItemIcon>
-              )}
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      {tasksShow ? (
+        <List>
+          {tasksShow.map((task) => (
+            <ListItem disablePadding key={task.id}>
+              <ListItemButton onClick={() => clickTask(task)}>
+                <ListItemText primary={task.name} />
+                {!task.isCompleted && (
+                  <ListItemIcon className="check-icon">
+                    <CloseIcon
+                      color="primary"
+                      onClick={() => completeTask(task.id)}
+                    />
+                  </ListItemIcon>
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <></>
+      )}
+
       <StyledModal
         open={open}
         onClose={handleClose}
