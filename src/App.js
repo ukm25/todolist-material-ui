@@ -12,11 +12,12 @@ function App() {
   const [todoList, setTodoList] = useState([]);
   const [filterChoice, setFilterChoice] = useState("all");
   const [listShow, setListShow] = useState([]);
+  const [todoShow, setTodoShow] = useState([]);
   const [textInput, setTextInput] = useState("");
   const [count, setCount] = useState(1);
   const [maxCount, setMaxCount] = useState();
 
-  //get data from storage
+  //lấy data từ localstorage
   useEffect(() => {
     const storageTodoList = localStorage.getItem(TODO_APP_STORAGE_KEY);
     if (storageTodoList) {
@@ -24,41 +25,49 @@ function App() {
     }
   }, [setTodoList]);
 
-  //save data to local storage
+  //lưu data vào localstorage
   useEffect(() => {
     localStorage.setItem(TODO_APP_STORAGE_KEY, JSON.stringify(todoList));
   }, [todoList]);
 
   //set list show
   useEffect(() => {
-    let todoListAdd = [];
+    let getTodos = [];
     if (filterChoice === "all") {
-      const getTodos = chunk(todoList,4);
-      todoListAdd = getTodos[count-1];
+      setListShow(todoList);
+      getTodos = chunk(todoList, 4);
     } else {
       if (filterChoice === "doing") {
-        // setListShow((prev) =>
-        //   todoList.filter((task) => task.isCompleted === false)
-        // );
-        const getTodos = chunk(todoList.filter((task) => task.isCompleted === false),4);
-        todoListAdd = getTodos[count-1];
+        setListShow(todoList.filter((task) => task.isCompleted === false));
+        getTodos = chunk(
+          todoList.filter((task) => task.isCompleted === false),
+          4
+        );
       } else {
         if (filterChoice === "completed") {
-          // setListShow((prev) =>
-          //   todoList.filter((task) => task.isCompleted === true)
-          // );
-          todoListAdd = todoList.filter((task) => task.isCompleted === true);
+          setListShow(todoList.filter((task) => task.isCompleted === true));
+          getTodos = chunk(
+            todoList.filter((task) => task.isCompleted === true),
+            4
+          );
         } else {
           if (filterChoice === "search") {
-            todoListAdd = todoList.filter((todo) => {
-              return todo.name.includes(textInput);
-            });
-            // setListShow(todoListAdd);
+            setListShow(
+              todoList.filter((todo) => {
+                return todo.name.includes(textInput);
+              })
+            );
+            getTodos = chunk(
+              todoList.filter((todo) => {
+                return todo.name.includes(textInput);
+              }),
+              4
+            );
           }
         }
       }
     }
-    setListShow(todoListAdd);
+    setTodoShow(getTodos[count - 1]);
   }, [
     filterChoice,
     setListShow,
@@ -103,23 +112,28 @@ function App() {
     );
   }, []);
 
-  const onSearchBtnClick = useCallback((e) => {
-    filterTask("search");
-  }, [filterTask]);
+  const onSearchBtnClick = useCallback(
+    (e) => {
+      filterTask("search");
+    },
+    [filterTask]
+  );
 
-  const onPaginationBtnClick = useCallback((event, value) => {
-    setCount(value)
-    // setListShow(prev => prev.slice(count-1,count+3))
-  },[setCount]);
+  const onPaginationBtnClick = useCallback(
+    (event, value) => {
+      setCount(value);
+    },
+    [setCount]
+  );
 
   useEffect(() => {
-    const pageCount = todoList.length;
+    const pageCount = listShow.length;
     if (pageCount % 4 === 0) {
       setMaxCount(pageCount / 4);
     } else {
       setMaxCount(parseInt(pageCount / 4 + 1));
     }
-  }, [todoList]);
+  }, [listShow]);
   return (
     <div style={{ textAlign: "center" }}>
       <Typography variant="h5" gutterBottom style={{ textAlign: "left" }}>
@@ -153,11 +167,11 @@ function App() {
         value={textInput}
       />
       <TodoList
-        tasksShow={listShow}
+        tasksShow={todoShow}
         completeTask={completeTask}
         onEditBtnClick={onEditBtnClick}
       />
-      <Filter filterTask={filterTask} />
+      <Filter filterTask={filterTask} filterChoice={filterChoice}/>
       <div
         md={12}
         style={{ justifyContent: "center", display: "flex", marginTop: "10px" }}

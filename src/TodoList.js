@@ -49,9 +49,6 @@ const style = {
 
 function TodoList({ tasksShow, completeTask, onEditBtnClick }) {
   const [open, setOpen] = useState(false);
-  // const [task, setTask] = useState([]);
-
-  // const tasks = [...tasksShow];
 
   const [id, setId] = useState("");
   const [status, setStatus] = useState();
@@ -79,18 +76,15 @@ function TodoList({ tasksShow, completeTask, onEditBtnClick }) {
     setName(task.name);
     setTextInput(task.name);
     handleOpen(task);
-    // setTask(task);
   };
   return (
     <>
-      {/* {console.log("id:",id)}
-    {console.log("status:",status)} */}
       {tasksShow ? (
         <List>
           {tasksShow.map((task) => (
             <ListItem disablePadding key={task.id}>
-              <ListItemButton onClick={() => clickTask(task)}>
-                <ListItemText primary={task.name} />
+              <ListItemButton >
+                <ListItemText primary={task.name} onClick={() => clickTask(task)}/>
                 {!task.isCompleted && (
                   <ListItemIcon className="check-icon">
                     <CloseIcon
